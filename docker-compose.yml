@@ -1,0 +1,30 @@
+services:
+  web:
+    build: ./app
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: root
+      DB_NAME: prueba
+    depends_on:
+      - db
+    networks:
+      - mi_red
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: prueba
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - mi_red
+
+volumes:
+  db_data:
+
+networks:
+  mi_red:
