@@ -1,2 +1,6 @@
 Flask==3.0.3
+<<<<<<< HEAD
 mysql-connector-python==8.3.0
+=======
+psycopg2-binary==2.9.9
+>>>>>>> c5e3112d4d7246ed49681412bdc7b842a4897666

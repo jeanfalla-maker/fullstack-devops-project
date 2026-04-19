@@ -1,3 +1,15 @@
+<<<<<<< HEAD
 __pycache__/
 *.pyc
 .env
+=======
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.log
+venv/
+node_modules/
+>>>>>>> c5e3112d4d7246ed49681412bdc7b842a4897666
