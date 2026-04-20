@@ -1,51 +1,34 @@
-from flask import Flask
-<<<<<<< HEAD
-import mysql.connector
-import os
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    try:
-        conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST", "db"),
-            user=os.getenv("DB_USER", "root"),
-            password=os.getenv("DB_PASSWORD", "root"),
-            database=os.getenv("DB_NAME", "prueba")
-        )
-        cursor = conn.cursor()
-        cursor.execute("SELECT VERSION()")
-        version = cursor.fetchone()[0]
-        conn.close()
-        return {
-            "estado": "Conexión exitosa a MySQL",
-            "version_mysql": version,
-            "base_de_datos": "prueba"
-        }
-    except Exception as e:
-        return {"error": str(e)}, 500
-=======
-import os
+from flask import Flask, jsonify
 import psycopg2
+import os
 
 app = Flask(__name__)
-
-DB_HOST = os.getenv("DB_HOST", "db")
-DB_NAME = os.getenv("DB_NAME", "appdb")
-DB_USER = os.getenv("DB_USER", "appuser")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "apppassword")
-DB_PORT = os.getenv("DB_PORT", "5432")
-
 
 def get_connection():
     return psycopg2.connect(
-        host=DB_HOST,
-        database=DB_NAME,
-        user=DB_USER,
-        password=DB_PASSWORD,
-        port=DB_PORT,
+        host=os.getenv("DB_HOST", "db"),
+        database=os.getenv("DB_NAME", "appdb"),
+        user=os.getenv("DB_USER", "appuser"),
+        password=os.getenv("DB_PASSWORD", "apppassword"),
+        port=os.getenv("DB_PORT", "5432")
     )
+
+def init_db():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id SERIAL PRIMARY KEY,
+                nombre VARCHAR(100),
+                email VARCHAR(100)
+            )
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error iniciando DB: {e}")
 
 @app.route("/")
 def home():
@@ -56,18 +39,52 @@ def home():
         version = cur.fetchone()[0]
         cur.close()
         conn.close()
-        return {
-            "message": "Aplicación desplegada correctamente con Docker, Compose y Kubernetes",
+        return jsonify({
+            "estado": "Aplicación funcionando correctamente",
             "database": "PostgreSQL conectado",
-            "version": version,
-        }
+            "version": version
+        })
     except Exception as e:
-        return {
-            "message": "Aplicación funcionando, pero sin conexión a la base de datos",
-            "error": str(e),
-        }, 500
+        return jsonify({"error": str(e)}), 500
 
->>>>>>> c5e3112d4d7246ed49681412bdc7b842a4897666
+@app.route("/data")
+def data():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, nombre, email FROM usuarios;")
+        filas = cur.fetchall()
+        cur.close()
+        conn.close()
+        usuarios = [
+            {"id": f[0], "nombre": f[1], "email": f[2]}
+            for f in filas
+        ]
+        return jsonify({"total": len(usuarios), "usuarios": usuarios})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/insert")
+def insert():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO usuarios (nombre, email)
+            VALUES ('Usuario Demo', 'demo@correo.com')
+            RETURNING id;
+        """)
+        nuevo_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({
+            "mensaje": "Usuario insertado correctamente",
+            "id": nuevo_id
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    init_db()
     app.run(host="0.0.0.0", port=5000)

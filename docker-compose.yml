@@ -1,35 +1,38 @@
-<<<<<<< HEAD
 services:
   web:
     build: ./app
-=======
-version: "3.9"
-
-services:
-  web:
-    build: ./app
-    container_name: flask_app
->>>>>>> c5e3112d4d7246ed49681412bdc7b842a4897666
     ports:
       - "5000:5000"
     environment:
       DB_HOST: db
-<<<<<<< HEAD
-      DB_USER: root
-      DB_PASSWORD: root
-      DB_NAME: prueba
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: appdb
+      DB_PORT: 5432
     depends_on:
       - db
     networks:
       - mi_red
 
-  db:
-    image: mysql:5.7
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: prueba
+      API_URL: http://web:5000
+    depends_on:
+      - web
+    networks:
+      - mi_red
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+      POSTGRES_DB: appdb
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
     networks:
       - mi_red
 
@@ -38,59 +41,3 @@ volumes:
 
 networks:
   mi_red:
-=======
-      DB_NAME: appdb
-      DB_USER: appuser
-      DB_PASSWORD: apppassword
-      DB_PORT: 5432
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - app_network
-
-  frontend:
-    build: ./frontend
-    container_name: node_frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - web
-    networks:
-      - app_network
-
-  worker:
-    build: ./worker
-    container_name: worker_service
-    depends_on:
-      - db
-    networks:
-      - app_network
-
-  db:
-    image: postgres:15
-    container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_DB: appdb
-      POSTGRES_USER: appuser
-      POSTGRES_PASSWORD: apppassword
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app_network
-
-volumes:
-  postgres_data:
-
-networks:
-  app_network:
->>>>>>> c5e3112d4d7246ed49681412bdc7b842a4897666
