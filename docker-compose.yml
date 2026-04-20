@@ -25,6 +25,19 @@ services:
     networks:
       - mi_red
 
+  worker:
+    build: ./worker
+    environment:
+      DB_HOST: db
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: appdb
+      DB_PORT: 5432
+    depends_on:
+      - db
+    networks:
+      - mi_red
+
   db:
     image: postgres:15
     environment:
