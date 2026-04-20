@@ -1,0 +1,24 @@
+import time
+import random
+
+def leer_db():
+    dato = random.randint(1, 100)
+    return dato
+
+def procesar(dato):
+    resultado = dato * 2
+    return resultado
+
+def main():
+    print("Worker inciado...")
+
+    while True:
+        dato = leer_db()
+        resultado = procesar(dato)
+
+        print(f"Dato leido: {dato} | Resultado procesado: {resultado}")
+
+        time.sleep(10)
+
+if __name__ == "__main__":
+    main()
